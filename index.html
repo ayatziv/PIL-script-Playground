@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peter Mind V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #e8c547;
+    --accent2: #7b5ea7;
+    --accent3: #4ade80;
+    --text: #e8e8f0;
+    --text-muted: #6b6b85;
+    --user-bg: #1e1e2e;
+    --agent-bg: #151520;
+    --radius: 12px;
+    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Syne', sans-serif;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    display: grid;
+    grid-template-columns: var(--sidebar-w, 380px) 4px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* ── TOPBAR ─────────────────────────────────────────────────────────────── */
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    gap: 16px;
+  }
+  .logo {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .logo-v {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 2px;
+    letter-spacing: 0;
+  }
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .model-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #555;
+    flex-shrink: 0;
+  }
+  .status-dot.active { background: var(--accent3); box-shadow: 0 0 6px #4ade80aa; }
+  /* ── SIDEBAR ────────────────────────────────────────────────────────────── */
+  aside {
+    grid-column: 1;
+    grid-row: 2;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 200px;
+  }
+  .v-resizer {
+    grid-row: 2; grid-column: 2;
+    background: var(--border);
+    cursor: col-resize;
+    transition: background 0.15s;
+    z-index: 10;
+  }
+  .v-resizer:hover, .v-resizer.dragging { background: var(--accent); }
+  .h-resizer {
+    height: 5px;
+    background: var(--border);
+    cursor: row-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .h-resizer:hover, .h-resizer.dragging { background: var(--accent2); }
+  /* ── SHARED SIDEBAR COMPONENTS ─────────────────────────────────────────── */
+  .s-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+  input[type="password"], input[type="text"], select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 11px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+  .row-pair { display: flex; gap: 6px; }
+  .icon-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 8px 11px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slider-row .s-label { min-width: 80px; white-space: nowrap; }
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    padding: 0; border: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 32px;
+    text-align: right;
+  }
+  /* ── CONFIG BLOCK (collapsible) ─────────────────────────────────────────── */
+  .config-block {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .config-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s;
+  }
+  .config-toggle:hover { background: var(--surface2); }
+  .config-toggle .s-label { flex: 1; }
+  .chevron {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .config-block.collapsed .chevron { transform: rotate(-90deg); }
+  .config-body {
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    max-height: 300px;
+  }
+  .config-block.collapsed .config-body { max-height: 0; }
+  .config-inner { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+  /* ── PROMPT BLOCKS ──────────────────────────────────────────────────────── */
+  .prompt-block {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 80px;
+  }
+  .prompt-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 8px;
+    flex-shrink: 0;
+  }
+  .prompt-header .s-label { flex: 1; }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 5px #4ade80aa;
+    flex-shrink: 0;
+  }
+  .char-count {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    opacity: 0.55;
+  }
+  .prompt-ta {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 12px;
+    resize: none;
+    outline: none;
+    line-height: 1.65;
+    transition: border-color 0.15s;
+    margin: 0 16px 12px;
+  }
+  .prompt-ta:focus { border-color: var(--accent2); }
+  #fixed-prompt:focus { border-color: var(--accent); }
+  /* ── DYNAMIC PROMPT EXTRAS ──────────────────────────────────────────────── */
+  .dynamic-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 80px;
+  }
+  .beat-row {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 8px;
+    flex-shrink: 0;
+  }
+  .beat-row select { font-size: 11px; }
+  /* ── DOC LOADER ─────────────────────────────────────────────────────────── */
+  .doc-loader {
+    padding: 8px 16px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+  }
+  .doc-loader-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .doc-loader-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .fetch-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .fetch-btn:hover { filter: brightness(1.1); }
+  .fetch-btn.loading { opacity: 0.6; cursor: not-allowed; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .file-fallback {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .file-fallback-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+  }
+  .file-fallback-label:hover { opacity: 1; }
+  .doc-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 0;
+    flex-shrink: 0;
+    min-height: 14px;
+  }
+  .doc-status.ok { color: var(--accent3); }
+  .doc-status.err { color: #ff8888; }
+  .doc-status.info { color: var(--text-muted); }
+  .reload-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .reload-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+  /* ── KEYPOINTS PANEL ───────────────────────────────────────────────────── */
+  .keypoints-panel {
+    flex-shrink: 0;
+    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    border-bottom: 2px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+    padding: 8px 20px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .keypoints-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .keypoints-panel-header .s-label { color: var(--accent); flex: 1; letter-spacing: 2px; }
+  .kp-close {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1;
+    transition: color 0.15s;
+  }
+  .kp-close:hover { color: var(--accent); }
+  .keypoints-box {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--accent);
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    opacity: 0.9;
+  }
+  .separator-preview {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    padding: 2px 16px 4px;
+    opacity: 0.45;
+    flex-shrink: 0;
+  }
+  /* ── START MESSAGE BLOCK ────────────────────────────────────────────────── */
+  .start-msg-block {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--accent3) 4%, var(--surface));
+  }
+  .start-msg-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 4px;
+  }
+  .start-msg-ta {
+    margin: 0 16px 10px;
+    min-height: 56px;
+    max-height: 110px;
+    border-color: color-mix(in srgb, var(--accent3) 30%, var(--border)) !important;
+    resize: vertical;
+  }
+  .start-msg-ta:focus { border-color: var(--accent3) !important; }
+  /* ── MAIN CHAT ───────────────────────────────────────────────────────────── */
+  main {
+    grid-column: 3;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+  #messages::-webkit-scrollbar { width: 5px; }
+  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  .msg {
+    display: flex;
+    gap: 14px;
+    max-width: 820px;
+    animation: fadeUp 0.25s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.assistant { align-self: flex-start; }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    font-family: var(--font-sans);
+    font-weight: 800;
+  }
+  .msg.user .avatar      { background: var(--accent);  color: var(--bg); }
+  .msg.assistant .avatar { background: var(--accent2); color: #fff; }
+  .bubble {
+    padding: 13px 17px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 680px;
+  }
+  .msg.user .bubble {
+    background: var(--user-bg);
+    border: 1px solid #2a2a3e;
+    border-top-right-radius: 3px;
+  }
+  .msg.assistant .bubble {
+    background: var(--agent-bg);
+    border: 1px solid var(--border);
+    border-top-left-radius: 3px;
+  }
+  .bubble pre {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    overflow-x: auto;
+    margin: 10px 0;
+    line-height: 1.5;
+  }
+  .bubble code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: #0d0d14;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .bubble pre code { background: none; padding: 0; }
+  .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 6px 0; }
+  .typing-dot {
+    width: 7px; height: 7px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: pulse 1.2s ease infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50%       { opacity: 1;   transform: scale(1); }
+  }
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0.3;
+    pointer-events: none;
+    user-select: none;
+  }
+  .empty-state .big-icon { font-size: 48px; }
+  .empty-state p {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+  /* ── INPUT ───────────────────────────────────────────────────────────────── */
+  .input-area {
+    border-top: 1px solid var(--border);
+    padding: 14px 20px 18px;
+    background: var(--surface);
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    transition: border-color 0.15s;
+  }
+  .input-row:focus-within { border-color: var(--accent); }
+  #user-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    max-height: 160px;
+    min-height: 24px;
+  }
+  #user-input::placeholder { color: var(--text-muted); }
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    width: 38px; height: 38px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bg);
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 18px;
+  }
+  .send-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .send-btn-small {
+    border: none;
+    border-radius: 7px;
+    width: 38px; height: 27px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  .send-btn-small:hover { filter: brightness(1.15); transform: scale(1.05); }
+  .send-btn-small:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .send-btn-small.monkey { background: var(--accent3); color: var(--bg); }
+  .send-btn-small.human  { background: var(--accent2); color: #fff; }
+  .input-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 7px;
+    padding: 0 2px;
+  }
+  .input-hint  { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); opacity: 0.5; }
+  .token-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  .beat-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent2);
+    background: #1e1630;
+    border: 1px solid var(--accent2);
+    padding: 3px 9px;
+    border-radius: 4px;
+    opacity: 0.9;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .reply-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    margin-top: 6px;
+    text-align: right;
+  }
+  .msg.user .reply-meta { text-align: left; }
+  .error-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #3a1a1a;
+    border: 1px solid #7a2a2a;
+    color: #ff8888;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    z-index: 100;
+    animation: fadeUp 0.2s ease;
+  }
+  .sys-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    cursor: pointer;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .sys-preview-row:hover { background: var(--surface2); }
+  .sys-preview-chars { font-family: var(--font-mono); font-size: 9px; color: var(--accent); margin-left: auto; }
+  .sys-preview-box {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background: #0d0d14;
+    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+  /* ── CHARACTER TABS ─────────────────────────────────────────────────────── */
+  .char-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .char-tab {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .char-tab:hover { color: var(--text); background: var(--surface2); }
+  .char-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .char-tab[data-char="monkey"].active { color: var(--accent3); border-bottom-color: var(--accent3); }
+  .char-tab[data-char="human"].active  { color: var(--accent2); border-bottom-color: var(--accent2); }
+  .char-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; }
+  .char-panel.active { display: flex; }
+  .puppet-prompt-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 80px;
+  }
+  .puppet-out-box {
+    margin: 0 16px 14px;
+    padding: 11px 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+    min-height: 48px;
+    max-height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .puppet-out-box.empty { color: var(--text-muted); opacity: 0.6; }
+  .puppet-out-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 6px;
+    flex-shrink: 0;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+<!-- ── HEADER ──────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">Peter Mind<span class="logo-v"> v2</span></div>
+  <div class="beat-chip" id="beat-chip" style="display:none"></div>
+  <div class="header-right">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="model-badge" id="model-display">claude-haiku-4-5-20251001</div>
+    <button class="clear-btn" onclick="downloadTranscript()" id="dl-btn" style="display:none">↓ Transcript</button>
+    <button class="clear-btn" onclick="clearConversation()">✕ Clear</button>
+  </div>
+</header>
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────────────── -->
+<aside>
+  <!-- CONFIG (collapsible) -->
+  <div class="config-block" id="config-block">
+    <div class="config-toggle" onclick="toggleConfig()">
+      <span class="s-label">Configuration</span>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="config-body">
+      <div class="config-inner">
+        <div>
+          <div class="s-label" style="margin-bottom:7px">API Key</div>
+          <div class="row-pair">
+            <input type="password" id="api-key" placeholder="sk-ant-..." />
+            <button class="icon-btn" onclick="toggleKeyVisibility()" title="Show/hide">👁</button>
+          </div>
+        </div>
+        <div>
+          <div class="s-label" style="margin-bottom:7px">Model</div>
+          <select id="model-select" onchange="updateModelBadge()">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+            <option value="claude-opus-4-20250514">Claude Opus 4</option>
+            <option value="claude-haiku-4-5-20251001" selected>Claude Haiku 4.5</option>
+            <option value="claude-sonnet-4-5-20251022">Claude Sonnet 4.5</option>
+          </select>
+        </div>
+        <div class="slider-row">
+          <span class="s-label">Temp</span>
+          <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.5"
+            oninput="document.getElementById('temp-val').textContent=this.value">
+          <span class="slider-val" id="temp-val">0.5</span>
+        </div>
+        <div class="slider-row">
+          <span class="s-label">Max Tokens</span>
+          <input type="range" id="max-tokens" min="100" max="8096" step="50" value="1024"
+            oninput="document.getElementById('tok-val').textContent=this.value">
+          <span class="slider-val" id="tok-val">1024</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- CHARACTER TABS -->
+  <div class="char-tabs">
+    <div class="char-tab active" data-char="peter"  onclick="switchCharTab('peter')">Peter</div>
+    <div class="char-tab"        data-char="monkey" onclick="switchCharTab('monkey')">Monkey Puppet</div>
+    <div class="char-tab"        data-char="human"  onclick="switchCharTab('human')">Human Puppet</div>
+  </div>
+  <!-- PETER PANEL -->
+  <div class="char-panel active" id="panel-peter">
+    <!-- FIXED PROMPT -->
+    <div class="prompt-block" id="fixed-block">
+      <div class="prompt-header">
+        <span class="s-label">Fixed Prompt</span>
+        <span class="live-dot" title="Applied on every send"></span>
+        <span class="char-count" id="fixed-chars">0</span>
+      </div>
+      <textarea class="prompt-ta" id="fixed-prompt"
+        placeholder="Peter's permanent identity, voice, rules, boundaries…"></textarea>
+    </div>
+    <!-- DRAG HANDLE -->
+    <div class="h-resizer" id="h-resizer"></div>
+    <!-- DYNAMIC PROMPT -->
+    <div class="dynamic-block" id="dynamic-block">
+      <div class="prompt-header">
+        <span class="s-label">Dynamic Prompt</span>
+        <span class="live-dot" style="background:var(--accent2);box-shadow:0 0 5px #7b5ea7aa" title="Current beat"></span>
+        <span class="char-count" id="dynamic-chars">0</span>
+      </div>
+
+      <!-- ── GOOGLE DOC LOADER (primary) ──────────────────────────────────── -->
+      <div class="doc-loader">
+        <div class="doc-loader-label">Script source · Apps Script</div>
+        <div class="doc-loader-row">
+          <input type="text" id="doc-id" placeholder="Apps Script exec URL" title="Your deployed Google Apps Script URL" />
+          <button class="fetch-btn" id="fetch-btn" onclick="loadFromDoc()" title="Fetch script from Google Doc">↺ Fetch</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div class="doc-status info" id="doc-status">Loading…</div>
+          <div class="file-fallback">
+            <label class="file-fallback-label" for="file-input" title="Load a local .txt file instead">or load local .txt</label>
+            <input type="file" id="file-input" accept=".txt,.md" style="display:none" onchange="loadFromFile(event)"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beat selector -->
+      <div class="beat-row" style="padding-top:8px">
+        <select id="beat-select" onchange="onBeatChange()">
+          <option value="__manual__">— manual —</option>
+        </select>
+      </div>
+      <!-- Separator hint -->
+      <div class="separator-preview">⬆ fixed &nbsp;┄┄ separator: "---" ┄┄&nbsp; dynamic ⬇</div>
+      <textarea class="prompt-ta" id="dynamic-prompt"
+        placeholder="Current scene beat prompt…"></textarea>
+      <!-- Start Message -->
+      <div class="start-msg-block" id="start-msg-block">
+        <div class="start-msg-header">
+          <span class="s-label" style="flex:1">Start Message</span>
+          <span class="char-count" id="start-msg-count">0</span>
+        </div>
+        <textarea class="prompt-ta start-msg-ta" id="start-message"
+          placeholder="Auto-filled from $$START_MESSAGE[…]$$ in the script…"
+          oninput="document.getElementById('start-msg-count').textContent=this.value.length"></textarea>
+      </div>
+      <!-- Combined prompt preview -->
+      <div class="sys-preview-row" onclick="toggleSysPreview()">
+        <span class="s-label">Combined Preview</span>
+        <span class="sys-preview-chars" id="combined-chars">0 chars</span>
+        <span class="chevron" id="preview-chevron" style="font-size:10px;color:var(--text-muted)">▾</span>
+      </div>
+      <div class="sys-preview-box" id="sys-preview-box" style="display:none"></div>
+    </div>
+  </div>
+  <!-- MONKEY PUPPET PANEL -->
+  <div class="char-panel" id="panel-monkey">
+    <div class="puppet-prompt-block">
+      <div class="prompt-header">
+        <span class="s-label">Monkey Puppet Prompt</span>
+        <span class="live-dot" style="background:var(--accent3);box-shadow:0 0 5px #4ade80aa"></span>
+        <span class="char-count" id="monkey-chars">0</span>
+      </div>
+      <textarea class="prompt-ta" id="monkey-prompt"
+        placeholder="Monkey Puppet's identity, voice, rules…" style="flex:1"></textarea>
+    </div>
+    <div class="puppet-out-header">
+      <span class="s-label" style="flex:1">Last Reply</span>
+      <button class="clear-btn" onclick="clearPuppetOutput('monkey')" style="padding:3px 9px;font-size:9px">clear</button>
+    </div>
+    <div class="puppet-out-box empty" id="monkey-output">No reply yet…</div>
+  </div>
+  <!-- HUMAN PUPPET PANEL -->
+  <div class="char-panel" id="panel-human">
+    <div class="puppet-prompt-block">
+      <div class="prompt-header">
+        <span class="s-label">Human Puppet Prompt</span>
+        <span class="live-dot" style="background:var(--accent2);box-shadow:0 0 5px #7b5ea7aa"></span>
+        <span class="char-count" id="human-chars">0</span>
+      </div>
+      <textarea class="prompt-ta" id="human-prompt"
+        placeholder="Human Puppet's identity, voice, rules…" style="flex:1"></textarea>
+    </div>
+    <div class="puppet-out-header">
+      <span class="s-label" style="flex:1">Last Reply</span>
+      <button class="clear-btn" onclick="clearPuppetOutput('human')" style="padding:3px 9px;font-size:9px">clear</button>
+    </div>
+    <div class="puppet-out-box empty" id="human-output">No reply yet…</div>
+  </div>
+</aside>
+<div class="v-resizer" id="v-resizer"></div>
+<!-- ── MAIN ────────────────────────────────────────────────────────────────── -->
+<main>
+  <!-- Keypoints panel — shown above chat when beat has %%keypoints%% -->
+  <div class="keypoints-panel" id="keypoints-panel" style="display:none">
+    <div class="keypoints-panel-header">
+      <span class="s-label">Key Points</span>
+      <button class="kp-close" onclick="document.getElementById('keypoints-panel').style.display='none'" title="Hide">✕</button>
+    </div>
+    <div class="keypoints-box" id="keypoints-box"></div>
+  </div>
+  <div id="messages">
+    <div class="empty-state" id="empty-state">
+      <div class="big-icon">⬡</div>
+      <p>Fetching script from Google Doc…<br>then start the conversation.</p>
+    </div>
+  </div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="user-input" rows="1"
+        placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+        oninput="autoResize(this)"></textarea>
+      <button class="send-btn"       id="send-btn"        onclick="sendMessage()"        title="Send to Peter">↑</button>
+      <button class="send-btn-small monkey" id="send-monkey-btn" onclick="sendToPuppet('monkey')" title="Send to Monkey Puppet" style="display:none">M</button>
+      <button class="send-btn-small human"  id="send-human-btn"  onclick="sendToPuppet('human')"  title="Send to Human Puppet"  style="display:none">H</button>
+    </div>
+    <div class="input-meta">
+      <span class="input-hint" id="input-hint">Enter · send to Peter &nbsp;·&nbsp; Shift+Enter · newline</span>
+      <span class="token-count" id="msg-count">0 messages</span>
+    </div>
+  </div>
+</main>
+<!-- ── SCRIPT ──────────────────────────────────────────────────────────────── -->
+<script>
+  // ─── API KEY ───────────────────────────────────────────────────────────────
+  const ANTHROPIC_API_KEY = '';  // leave empty — enter your key in the UI; it's saved in localStorage
+  // ─── APPS SCRIPT URL (serves the Google Doc as plain text) ────────────────
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBdtP2kx-TnqVNIzh2lqNf_lxrbAHD1Xm5jI4muQlkDb6Isx-x7o_pzPIqdsdq3VgOUg/exec';
+  // ──────────────────────────────────────────────────────────────────────────
+
+  let conversation  = [];
+  let beats         = {};
+  let startMessages = {};
+  let keypoints     = {};
+  let activeCharTab = 'peter';
+  let eventLog      = [];
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  // Restore API key from localStorage
+  const savedKey = localStorage.getItem('pm_v2_api_key') || '';
+  if (savedKey) {
+    document.getElementById('api-key').value = savedKey;
+    document.getElementById('api-key').placeholder = '(saved)';
+  }
+  document.getElementById('api-key').addEventListener('change', function() {
+    if (this.value.trim()) localStorage.setItem('pm_v2_api_key', this.value.trim());
+  });
+
+  // Restore script URL from localStorage, fall back to default
+  const savedUrl  = localStorage.getItem('pm_v2_script_url') || SCRIPT_URL;
+  document.getElementById('doc-id').value = savedUrl;
+
+  // Fixed prompt char count + preview
+  document.getElementById('fixed-prompt').addEventListener('input', function() {
+    document.getElementById('fixed-chars').textContent = this.value.length;
+    updatePreview();
+  });
+
+  // Dynamic prompt char count
+  document.getElementById('dynamic-prompt').addEventListener('input', function() {
+    document.getElementById('dynamic-chars').textContent = this.value.length;
+    const sel = document.getElementById('beat-select').value;
+    if (sel !== '__manual__') beats[sel] = this.value;
+  });
+
+  // Enter to send — routes by active tab
+  document.getElementById('user-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (activeCharTab === 'monkey') sendToPuppet('monkey');
+      else if (activeCharTab === 'human') sendToPuppet('human');
+      else sendMessage();
+    }
+  });
+
+  // Puppet prompt char counts
+  document.getElementById('monkey-prompt').addEventListener('input', function() {
+    document.getElementById('monkey-chars').textContent = this.value.length;
+  });
+  document.getElementById('human-prompt').addEventListener('input', function() {
+    document.getElementById('human-chars').textContent = this.value.length;
+  });
+
+  // ── Auto-fetch on page load ───────────────────────────────────────────────
+  // Small delay to let the browser settle before network calls
+  setTimeout(loadFromDoc, 400);
+
+  // ── Character tabs ────────────────────────────────────────────────────────
+  function switchCharTab(name) {
+    activeCharTab = name;
+    document.querySelectorAll('.char-tab').forEach(t  => t.classList.toggle('active', t.dataset.char === name));
+    document.querySelectorAll('.char-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+    document.getElementById('send-btn').style.display        = name === 'peter'  ? '' : 'none';
+    document.getElementById('send-monkey-btn').style.display = name === 'monkey' ? '' : 'none';
+    document.getElementById('send-human-btn').style.display  = name === 'human'  ? '' : 'none';
+    const hint = document.getElementById('input-hint');
+    if (name === 'monkey') hint.textContent = 'Enter · send to Monkey Puppet ·· Shift+Enter · newline';
+    else if (name === 'human') hint.textContent = 'Enter · send to Human Puppet ·· Shift+Enter · newline';
+    else hint.textContent = 'Enter · send to Peter ·· Shift+Enter · newline';
+  }
+
+  // ── Config collapse ───────────────────────────────────────────────────────
+  function toggleConfig() {
+    document.getElementById('config-block').classList.toggle('collapsed');
+  }
+
+  // ── Model badge ───────────────────────────────────────────────────────────
+  function updateModelBadge() {
+    document.getElementById('model-display').textContent =
+      document.getElementById('model-select').value;
+  }
+
+  // ── API key visibility ────────────────────────────────────────────────────
+  function toggleKeyVisibility() {
+    const inp = document.getElementById('api-key');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  // ── Beat selector ─────────────────────────────────────────────────────────
+  function onBeatChange() {
+    const sel = document.getElementById('beat-select').value;
+    const ta  = document.getElementById('dynamic-prompt');
+    if (sel === '__manual__') {
+      ta.value = '';
+      ta.placeholder = 'Current scene beat prompt…';
+    } else {
+      ta.value = beats[sel] || '';
+    }
+    document.getElementById('dynamic-chars').textContent = ta.value.length;
+    const sm = sel === '__manual__' ? '' : (startMessages[sel] || '');
+    document.getElementById('start-message').value = sm;
+    document.getElementById('start-msg-count').textContent = sm.length;
+    updateBeatChip(sel === '__manual__' ? null : sel);
+    // Show keypoints panel
+    const kp = sel === '__manual__' ? '' : (keypoints[sel] || '');
+    const kpPanel = document.getElementById('keypoints-panel');
+    const kpBox   = document.getElementById('keypoints-box');
+    if (kp) { kpBox.textContent = kp; kpPanel.style.display = ''; }
+    else { kpPanel.style.display = 'none'; }
+    updatePreview();
+    if (sm) sendStartMessage();
+  }
+
+  function updateBeatChip(name) {
+    const chip = document.getElementById('beat-chip');
+    if (name) { chip.textContent = '● ' + name; chip.style.display = ''; }
+    else       { chip.style.display = 'none'; }
+  }
+
+  // ── Apps Script loader via JSONP (bypasses Wix iframe CORS/CSP) ──────────
+  function loadFromDoc() {
+    const url = document.getElementById('doc-id').value.trim();
+    if (!url) { setDocStatus('Paste the Apps Script URL above', 'err'); return; }
+    localStorage.setItem('pm_v2_script_url', url);
+
+    const btn = document.getElementById('fetch-btn');
+    btn.textContent = '↺'; btn.classList.add('loading'); btn.disabled = true;
+    setDocStatus('Fetching script…', 'info');
+
+    const cbName = 'apsCb_' + Date.now();
+    const tag = document.createElement('script');
+
+    const cleanup = (ok) => {
+      delete window[cbName];
+      if (tag.parentNode) tag.remove();
+      btn.classList.remove('loading'); btn.disabled = false; btn.textContent = '↺ Fetch';
+    };
+
+    window[cbName] = function(data) {
+      cleanup();
+      if (data && data.text) {
+        parseDocBeats(data.text);
+      } else {
+        setDocStatus('Empty response — check script', 'err');
+      }
+    };
+
+    tag.onerror = function() {
+      cleanup();
+      setDocStatus('Load failed — check Apps Script URL', 'err');
+    };
+
+    tag.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    document.head.appendChild(tag);
+  }
+
+  // ── Local file fallback ───────────────────────────────────────────────────
+  function loadFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    setDocStatus('Reading ' + file.name + '…', 'info');
+    const reader = new FileReader();
+    reader.onload = e => {
+      parseDocBeats(e.target.result);
+      if (Object.keys(beats).length > 0)
+        setDocStatus('✓ ' + file.name + ' — ' + Object.keys(beats).length + ' beats', 'ok');
+    };
+    reader.onerror = () => setDocStatus('Failed to read file', 'err');
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // ── Parse @@ markers ─────────────────────────────────────────────────────
+  function parseDocBeats(text) {
+    text = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const parts = text.split(/\n?(?=^@@)/m);
+    beats = {};
+    startMessages = {};
+    keypoints = {};
+    const names = [];
+    let fixedLoaded = false;
+
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (!trimmed.startsWith('@@')) continue;
+      const firstNewline = trimmed.indexOf('\n');
+      if (firstNewline === -1) continue;
+      const tag  = trimmed.slice(2, firstNewline).trim();
+      let   body = trimmed.slice(firstNewline + 1).trim();
+      if (!tag || tag.toUpperCase() === 'END') continue;
+
+      // Extract %%keypoints...%% (for display only, not sent to AI)
+      const kpMatch = body.match(/%%keypoints\s*([\s\S]*?)%%/i);
+      const kpText  = kpMatch ? kpMatch[1].trim() : '';
+      body = body.replace(/%%keypoints\s*[\s\S]*?%%/i, '').trim();
+      const startMsgMatch = body.match(/\$\$START_MESSAGE([\s\S]*?)\$\$/);
+      const startMsg = startMsgMatch ? startMsgMatch[1].trim() : '';
+      body = body.replace(/\$\$START_MESSAGE[\s\S]*?\$\$/, '').trim();
+
+      if (tag.toLowerCase() === 'fixed_prompt') {
+        document.getElementById('fixed-prompt').value = body;
+        document.getElementById('fixed-chars').textContent = body.length;
+        fixedLoaded = true;
+      } else {
+        beats[tag] = body;
+        startMessages[tag] = startMsg;
+        keypoints[tag] = kpText;
+        names.push(tag);
+      }
+    }
+
+    // Rebuild beat selector
+    const sel = document.getElementById('beat-select');
+    sel.innerHTML = '<option value="__manual__">— manual —</option>';
+    names.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n; opt.textContent = n;
+      sel.appendChild(opt);
+    });
+    if (names.length > 0) { sel.value = names[0]; onBeatChange(); }
+
+    // Collapse config, update preview, show status
+    document.getElementById('config-block').classList.add('collapsed');
+    updatePreview();
+    const beatMsg  = names.length > 0 ? `${names.length} beats` : 'no beats';
+    const fixedMsg = fixedLoaded ? ' · fixed prompt loaded' : '';
+    setDocStatus('✓ ' + beatMsg + fixedMsg, 'ok');
+
+    // Update empty-state hint now that script is loaded
+    const es = document.getElementById('empty-state');
+    if (es) es.querySelector('p').innerHTML =
+      'Script loaded — set the beat<br>and start the conversation.';
+  }
+
+  function setDocStatus(msg, type) {
+    const el = document.getElementById('doc-status');
+    el.textContent = msg;
+    el.className = 'doc-status ' + type;
+  }
+
+  // ── Preview ───────────────────────────────────────────────────────────────
+  function updatePreview() {
+    const combined = buildSystemPrompt();
+    document.getElementById('combined-chars').textContent = combined.length + ' chars';
+    document.getElementById('sys-preview-box').textContent = combined || '(empty)';
+  }
+  function toggleSysPreview() {
+    const box = document.getElementById('sys-preview-box');
+    const ch  = document.getElementById('preview-chevron');
+    const visible = box.style.display !== 'none';
+    box.style.display = visible ? 'none' : 'block';
+    ch.style.transform = visible ? '' : 'rotate(180deg)';
+    if (!visible) updatePreview();
+  }
+
+  // ── Build combined system prompt ──────────────────────────────────────────
+  function buildSystemPrompt() {
+    const fixed   = document.getElementById('fixed-prompt').value.trim();
+    const dynamic = document.getElementById('dynamic-prompt').value.trim();
+    if (fixed && dynamic) return fixed + '\n\n---\n\n' + dynamic;
+    return fixed || dynamic || '';
+  }
+
+  // ── Transcript download ───────────────────────────────────────────────────
+  function downloadTranscript() {
+    if (eventLog.length === 0) return;
+    const beat  = document.getElementById('beat-select').value;
+    const scene = beat === '__manual__' ? 'manual' : beat;
+    const now   = new Date();
+    const stamp = now.toISOString().slice(0,16).replace('T','_').replace(':','-');
+    const lines = [];
+    lines.push('PETER MIND — TRANSCRIPT');
+    lines.push('Scene: ' + scene);
+    lines.push('Date: ' + now.toLocaleString());
+    lines.push('Model: ' + document.getElementById('model-select').value);
+    lines.push('='.repeat(60));
+    lines.push('');
+    let lastLine = null;
+    for (const ev of eventLog) {
+      const inputSpeaker = ev.inputSpeaker || 'Amir';
+      if (ev.input !== lastLine) {
+        lines.push(`${inputSpeaker.toUpperCase()}:`);
+        lines.push(ev.input);
+        lines.push('');
+      }
+      lines.push(`${ev.speaker.toUpperCase()}:`);
+      lines.push(ev.reply);
+      lines.push('');
+      lastLine = ev.reply;
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `peter_${scene}_${stamp}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function clearConversation() {
+    conversation = []; eventLog = [];
+    document.getElementById('messages').innerHTML =
+      `<div class="empty-state" id="empty-state">
+        <div class="big-icon">⬡</div>
+        <p>Script loaded — set the beat<br>and start the conversation.</p>
+      </div>`;
+    clearPuppetOutput('monkey');
+    clearPuppetOutput('human');
+    updateCount();
+  }
+
+  function updateCount() {
+    document.getElementById('msg-count').textContent = conversation.length + ' messages';
+    document.getElementById('dl-btn').style.display = eventLog.length > 0 ? '' : 'none';
+  }
+  function setStatus(active) {
+    document.getElementById('status-dot').className = 'status-dot' + (active ? ' active' : '');
+  }
+  function showError(msg) {
+    document.querySelector('.error-toast')?.remove();
+    const el = document.createElement('div');
+    el.className = 'error-toast'; el.textContent = '⚠ ' + msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  function appendMessage(role, content) {
+    document.getElementById('empty-state')?.remove();
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div'); div.className = 'msg ' + role;
+    const av   = document.createElement('div'); av.className = 'avatar';
+    av.textContent = role === 'user' ? 'U' : '⬡';
+    const bubble = document.createElement('div'); bubble.className = 'bubble';
+    bubble.innerHTML = formatMessage(content);
+    div.appendChild(av); div.appendChild(bubble);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return bubble;
+  }
+
+  function formatMessage(text) {
+    return text
+      .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, l, c) =>
+        `<pre><code>${esc(c.trim())}</code></pre>`)
+      .replace(/`([^`]+)`/g, (_, c) => `<code>${esc(c)}</code>`)
+      .replace(/\n/g, '<br>');
+  }
+  function esc(str) {
+    return str.replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showTyping() {
+    document.getElementById('empty-state')?.remove();
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.className = 'msg assistant'; div.id = 'typing-msg';
+    const av = document.createElement('div'); av.className = 'avatar'; av.textContent = '⬡';
+    const b  = document.createElement('div'); b.className = 'bubble';
+    b.innerHTML = `<div class="typing-indicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>`;
+    div.appendChild(av); div.appendChild(b);
+    msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+  }
+  function removeTyping() { document.getElementById('typing-msg')?.remove(); }
+
+  // ── Send start message ────────────────────────────────────────────────────
+  function sendStartMessage() {
+    const msg = document.getElementById('start-message').value.trim();
+    if (!msg) return;
+    const inp = document.getElementById('user-input');
+    inp.value = msg; autoResize(inp);
+    sendMessage();
+  }
+
+  // ── Send to Peter ─────────────────────────────────────────────────────────
+  async function sendMessage() {
+    const apiKey = ANTHROPIC_API_KEY || document.getElementById('api-key').value.trim();
+    if (!apiKey) { showError('Please enter your Anthropic API key'); return; }
+    const userInput = document.getElementById('user-input');
+    const text = userInput.value.trim();
+    if (!text) return;
+    const model     = document.getElementById('model-select').value;
+    const temp      = parseFloat(document.getElementById('temperature').value);
+    const maxTokens = parseInt(document.getElementById('max-tokens').value);
+    const sysPrompt = buildSystemPrompt();
+
+    conversation.push({ role: 'user', content: text });
+    appendMessage('user', text);
+    userInput.value = ''; userInput.style.height = 'auto';
+    updateCount();
+    document.getElementById('send-btn').disabled = true;
+    setStatus(true); showTyping();
+    const t0 = Date.now();
+
+    try {
+      const body = { model, max_tokens: maxTokens, temperature: temp, messages: conversation };
+      if (sysPrompt) body.system = sysPrompt;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
+      const reply    = data.content?.[0]?.text || '';
+      const duration = ((Date.now() - t0) / 1000).toFixed(1);
+      conversation.push({ role: 'assistant', content: reply });
+      eventLog.push({ time: new Date(), speaker: 'Peter', inputSpeaker: 'Amir', input: text, reply });
+      removeTyping();
+      const bubble = appendMessage('assistant', reply);
+      const meta = document.createElement('div');
+      meta.className = 'reply-meta'; meta.textContent = duration + 's';
+      bubble.appendChild(meta);
+      updateCount();
+    } catch(err) {
+      removeTyping(); showError(err.message); conversation.pop(); updateCount();
+    } finally {
+      document.getElementById('send-btn').disabled = false; setStatus(false);
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  // ── Puppet helpers ────────────────────────────────────────────────────────
+  function clearPuppetOutput(name) {
+    const box = document.getElementById(name + '-output');
+    box.textContent = 'No reply yet…'; box.classList.add('empty');
+  }
+  function setPuppetOutput(name, text, isError) {
+    const box = document.getElementById(name + '-output');
+    box.classList.remove('empty'); box.textContent = text;
+    box.style.color = isError ? '#ff8888' : '';
+  }
+
+  // ── One-shot puppet send ──────────────────────────────────────────────────
+  async function sendToPuppet(name) {
+    const apiKey = ANTHROPIC_API_KEY || document.getElementById('api-key').value.trim();
+    if (!apiKey) { showError('Please enter your Anthropic API key'); return; }
+    const userInput = document.getElementById('user-input');
+    const typed = userInput.value.trim();
+    let text = typed;
+    let usedFallback = false;
+
+    if (!text) {
+      for (let i = conversation.length - 1; i >= 0; i--) {
+        if (conversation[i].role === 'assistant') {
+          text = conversation[i].content; usedFallback = true; break;
+        }
+      }
+      if (!text) { showError('Nothing to send — type a message or get a reply from Peter first'); return; }
+    }
+
+    if (typed) { userInput.value = ''; userInput.style.height = 'auto'; }
+
+    const sysPrompt = document.getElementById(name + '-prompt').value.trim();
+    const model     = document.getElementById('model-select').value;
+    const temp      = parseFloat(document.getElementById('temperature').value);
+    const maxTokens = parseInt(document.getElementById('max-tokens').value);
+    const btn = document.getElementById('send-' + name + '-btn');
+    btn.disabled = true;
+    setPuppetOutput(name, usedFallback ? '… reacting to Peter\'s last line' : '… thinking', false);
+    document.getElementById(name + '-output').classList.add('empty');
+
+    try {
+      const body = {
+        model, max_tokens: maxTokens, temperature: temp,
+        messages: [{ role: 'user', content: text }]
+      };
+      if (sysPrompt) body.system = sysPrompt;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
+      const reply = data.content?.[0]?.text || '';
+      setPuppetOutput(name, reply, false);
+      const speakerLabel = name === 'monkey' ? 'Monkey Puppet' : 'Human Puppet';
+      const inputSpeaker = usedFallback ? 'Peter' : 'Amir';
+      eventLog.push({ time: new Date(), speaker: speakerLabel, inputSpeaker, input: text, reply });
+      updateCount();
+    } catch(err) {
+      setPuppetOutput(name, '⚠ ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Vertical resizer ──────────────────────────────────────────────────────
+  (function() {
+    const handle = document.getElementById('v-resizer');
+    let dragging = false, startX, startW;
+    handle.addEventListener('mousedown', e => {
+      dragging = true; startX = e.clientX;
+      startW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-w')) || 380;
+      handle.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const w = Math.max(200, Math.min(650, startW + e.clientX - startX));
+      document.documentElement.style.setProperty('--sidebar-w', w + 'px');
+    });
+    document.addEventListener('mouseup', () => {
+      dragging = false; handle.classList.remove('dragging');
+      document.body.style.userSelect = ''; document.body.style.cursor = '';
+    });
+  })();
+
+  // ── Horizontal resizer ────────────────────────────────────────────────────
+  (function() {
+    const handle  = document.getElementById('h-resizer');
+    const fixedEl = document.getElementById('fixed-block');
+    let dragging = false, startY, startH;
+    handle.addEventListener('mousedown', e => {
+      dragging = true; startY = e.clientY; startH = fixedEl.offsetHeight;
+      handle.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'row-resize';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const aside = document.querySelector('aside');
+      const maxH  = aside.offsetHeight - 200;
+      const h = Math.max(80, Math.min(maxH, startH + e.clientY - startY));
+      fixedEl.style.flex = 'none'; fixedEl.style.height = h + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      dragging = false; handle.classList.remove('dragging');
+      document.body.style.userSelect = ''; document.body.style.cursor = '';
+    });
+  })();
+</script>
+</body>
+</html>
